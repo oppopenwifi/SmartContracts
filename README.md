@@ -4,7 +4,7 @@
 
 There will be several stages of the token sale, each defined with the amount of tokens on offer and the associated bonus. 
 
-All tokens that are not sold in each stage will be burned.
+All tokens that are not sold in each stage will be added to Host Payments Bank.
 
 Token sale will have a hardcap and a softcap. 
 
