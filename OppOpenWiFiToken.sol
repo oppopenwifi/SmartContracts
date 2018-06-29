@@ -102,7 +102,7 @@ contract OppOpenWiFi is ERC20
     {
        owner = msg.sender;
        balances[address(this)] = totalTokenSupply;
-       emit Transfer(address(0), address(this), balances[address(this)]);
+       emit Transfer(address(0x0), address(this), balances[address(this)]);
     }
     
     /**
@@ -141,7 +141,7 @@ contract OppOpenWiFi is ERC20
            return;
        }
 
-       require(_to != address(0));
+       require(_to != address(0x0));
        require(balances[_from] >= _value && allowed[_from][msg.sender] >= _value && _value >= 0);
 
        balances[_from] = balances[_from].sub(_value);
@@ -164,7 +164,7 @@ contract OppOpenWiFi is ERC20
 
     function approve(address _spender, uint256 _tokens)public returns(bool)
     {
-       require(_spender != address(0));
+       require(_spender != address(0x0));
 
        allowed[msg.sender][_spender] = _tokens;
        emit Approval(msg.sender, _spender, _tokens);
@@ -180,7 +180,7 @@ contract OppOpenWiFi is ERC20
 
     function allowance(address _owner, address _spender) public view returns(uint256)
     {
-       require(_owner != address(0) && _spender != address(0));
+       require(_owner != address(0x0) && _spender != address(0x0));
 
        return allowed[_owner][_spender];
     }
@@ -199,7 +199,7 @@ contract OppOpenWiFi is ERC20
            return;
        }
 
-       require(_address != address(0));
+       require(_address != address(0x0));
        require(balances[msg.sender] >= _tokens);
 
        balances[msg.sender] = (balances[msg.sender]).sub(_tokens);
@@ -216,7 +216,7 @@ contract OppOpenWiFi is ERC20
 
     function transferTo(address _address, uint256 _tokens) external onlyOwner returns(bool) 
     {
-       require( _address != address(0)); 
+       require( _address != address(0x0)); 
        require( balances[address(this)] >= _tokens.mul(TOKEN_DECIMALS) && _tokens.mul(TOKEN_DECIMALS) > 0);
 
        balances[address(this)] = ( balances[address(this)]).sub(_tokens.mul(TOKEN_DECIMALS));
@@ -232,7 +232,7 @@ contract OppOpenWiFi is ERC20
 
     function transferOwnership(address _newOwner)public onlyOwner
     {
-       require( _newOwner != address(0));
+       require( _newOwner != address(0x0));
 
        balances[_newOwner] = (balances[_newOwner]).add(balances[owner]);
        balances[owner] = 0;
