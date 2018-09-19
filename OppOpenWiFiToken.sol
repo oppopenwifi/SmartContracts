@@ -1,4 +1,4 @@
-pragma solidity 0.4.23;
+pragma solidity 0.4.25;
 
 /**
  * @title SafeMath
@@ -81,13 +81,22 @@ contract OppOpenWiFi is ERC20
     uint256 public totalTokenSupply        = 4165000000 * TOKEN_DECIMALS;  
     address public owner;
     uint8 public constant decimals = 18;
-
+    
+    struct ClaimLimit 
+    {
+       uint256 time_limit_epoch;
+       uint256 last_claim_time;
+       uint256 tokens;
+       bool    limitSet;
+    }
+    
     /** mappings **/ 
+    mapping(address => ClaimLimit) claimLimits;
     mapping(address => mapping(address => uint256)) allowed;
     mapping(address => uint256) balances;
- 
+
     /**
-     * @dev Throws if called by any account other than the owner.
+     * @dev Throws if called by any account other than the owner
      */
 
     modifier onlyOwner() 
@@ -107,7 +116,7 @@ contract OppOpenWiFi is ERC20
     
     /**
      * @dev total number of tokens in existence
-    */
+     */
 
     function totalSupply() public view returns(uint256 _totalSupply) 
     {
@@ -116,12 +125,12 @@ contract OppOpenWiFi is ERC20
     }
 
     /**
-     * @dev Gets the balance of the specified address.
-     * @param _owner The address to query the the balance of. 
-     * @return An uint256 representing the amount owned by the passed address.
+     * @dev Gets the balance of the specified address
+     * @param _owner The address to query the the balance of 
+     * @return An uint256 representing the amount owned by the passed address
      */
 
-    function balanceOf(address _owner) public view returns (uint256 balance) 
+    function balanceOf(address _owner) public onlyOwner view returns (uint256 balance) 
     {
        return balances[_owner];
     }
@@ -140,7 +149,8 @@ contract OppOpenWiFi is ERC20
            emit Transfer(_from, _to, _value);  // Follow the spec to launch the event when value is equal to 0
            return;
        }
-
+       
+       require(!claimLimits[msg.sender].limitSet, "Limit is set and use claim");
        require(_to != address(0x0));
        require(balances[_from] >= _value && allowed[_from][msg.sender] >= _value && _value >= 0);
 
@@ -152,15 +162,15 @@ contract OppOpenWiFi is ERC20
     }
 
     /**
-    * @dev Approve the passed address to spend the specified amount of tokens on behalf of msg.sender.
-    *
-    * Beware that changing an allowance with this method brings the risk that someone may use both the old
-    * and the new allowance by unfortunate transaction ordering. One possible solution to mitigate this
-    * race condition is to first reduce the spender's allowance to 0 and set the desired value afterwards:
-    * https://github.com/ethereum/EIPs/issues/20#issuecomment-263524729
-    * @param _spender The address which will spend the funds.
-    * @param _tokens The amount of tokens to be spent.
-    */
+     * @dev Approve the passed address to spend the specified amount of tokens on behalf of msg.sender
+     *
+     * Beware that changing an allowance with this method brings the risk that someone may use both the old
+     * and the new allowance by unfortunate transaction ordering. One possible solution to mitigate this
+     * race condition is to first reduce the spender's allowance to 0 and set the desired value afterwards
+     * https://github.com/ethereum/EIPs/issues/20#issuecomment-263524729
+     * @param _spender The address which will spend the funds
+     * @param _tokens The amount of tokens to be spent
+     */
 
     function approve(address _spender, uint256 _tokens)public returns(bool)
     {
@@ -172,10 +182,10 @@ contract OppOpenWiFi is ERC20
     }
 
     /**
-     * @dev Function to check the amount of tokens that an owner allowed to a spender.
-     * @param _owner address The address which owns the funds.
-     * @param _spender address The address which will spend the funds.
-     * @return A uint256 specifing the amount of tokens still avaible for the spender.
+     * @dev Function to check the amount of tokens that an owner allowed to a spender
+     * @param _owner address The address which owns the funds
+     * @param _spender address The address which will spend the funds
+     * @return A uint256 specifing the amount of tokens still avaible for the spender
      */
 
     function allowance(address _owner, address _spender) public view returns(uint256)
@@ -186,10 +196,10 @@ contract OppOpenWiFi is ERC20
     }
 
     /**
-    * @dev transfer token for a specified address
-    * @param _address The address to transfer to.
-    * @param _tokens The amount to be transferred.
-    */
+     * @dev transfer token for a specified address
+     * @param _address The address to transfer to
+     * @param _tokens The amount to be transferred
+     */
 
     function transfer(address _address, uint256 _tokens)public returns(bool)
     {
@@ -199,6 +209,7 @@ contract OppOpenWiFi is ERC20
            return;
        }
 
+       require(!claimLimits[msg.sender].limitSet, "Limit is set and use claim");
        require(_address != address(0x0));
        require(balances[msg.sender] >= _tokens);
 
@@ -209,10 +220,10 @@ contract OppOpenWiFi is ERC20
     }
     
     /**
-    * @dev transfer token from smart contract to another account, only by owner
-    * @param _address The address to transfer to.
-    * @param _tokens The amount to be transferred.
-    */
+     * @dev transfer token from smart contract to another account, only by owner
+     * @param _address The address to transfer to
+     * @param _tokens The amount to be transferred
+     */
 
     function transferTo(address _address, uint256 _tokens) external onlyOwner returns(bool) 
     {
@@ -226,9 +237,9 @@ contract OppOpenWiFi is ERC20
     }
 	
     /**
-    * @dev transfer ownership of this contract, only by owner
-    * @param _newOwner The address of the new owner to transfer ownership
-    */
+     * @dev transfer ownership of this contract, only by owner
+     * @param _newOwner The address of the new owner to transfer ownership
+     */
 
     function transferOwnership(address _newOwner)public onlyOwner
     {
@@ -241,8 +252,8 @@ contract OppOpenWiFi is ERC20
    }
 
    /**
-   * @dev Increase the amount of tokens that an owner allowed to a spender
-   */
+    * @dev Increase the amount of tokens that an owner allowed to a spender
+    */
 
    function increaseApproval(address _spender, uint256 _addedValue) public returns (bool success) 
    {
@@ -252,8 +263,9 @@ contract OppOpenWiFi is ERC20
    }
 
    /**
-   * @dev Decrease the amount of tokens that an owner allowed to a spender
-   */
+    * @dev Decrease the amount of tokens that an owner allowed to a spender
+    */
+
    function decreaseApproval(address _spender, uint256 _subtractedValue) public returns (bool success) 
    {
       uint256 oldValue = allowed[msg.sender][_spender];
@@ -270,4 +282,59 @@ contract OppOpenWiFi is ERC20
       return true;
    }
 
+   /**
+    * @dev Transfer tokens to another account, time and percent limit apply
+    */
+
+   function claim(address _recipient) public
+   {
+      require(_recipient != address(0x0), "Invalid recipient");
+      require(msg.sender != _recipient, "Self transfer");
+      require(claimLimits[msg.sender].limitSet, "Limit not set");
+       
+      if (claimLimits[msg.sender].last_claim_time > 0) 
+      {
+         require (now > ((claimLimits[msg.sender].last_claim_time).
+           add(claimLimits[msg.sender].time_limit_epoch)), "Time limit");
+      }
+       
+      uint256 tokens = claimLimits[msg.sender].tokens;
+
+      if (balances[msg.sender] < tokens)
+           tokens = balances[msg.sender];
+        
+      if (tokens == 0) 
+      {
+           emit Transfer(msg.sender, _recipient, tokens);
+           return;
+      }
+       
+      balances[msg.sender] = (balances[msg.sender]).sub(tokens);
+      balances[_recipient] = (balances[_recipient]).add(tokens);
+       
+      // update last claim time
+      claimLimits[msg.sender].last_claim_time = now;
+       
+      emit Transfer(msg.sender, _recipient, tokens);
+   }
+ 
+   /**
+    * @dev Set limit on a claim per address
+    */
+
+   function setClaimLimit(address _address, uint256 _days, uint256 _percent) public onlyOwner
+   {
+      require(_percent <= 100, "Invalid percent");
+
+      claimLimits[_address].time_limit_epoch = (now + ((_days).mul(1 days))) - now;
+      claimLimits[_address].last_claim_time  = 0;
+   		
+      if (balances[_address] > 0)
+   	     claimLimits[_address].tokens = ((balances[_address]).mul(_percent)).div(100);
+      else
+   	     claimLimits[_address].tokens = 0;
+   		    
+      claimLimits[_address].limitSet = true;
+   }
 }
+
