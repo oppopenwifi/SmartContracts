@@ -19,7 +19,7 @@ library SafeMath
      	return 0;
      }
      c = a * b;
-     assert(c / a == b);
+     require(c / a == b);
      return c;
   }
 
@@ -38,7 +38,7 @@ library SafeMath
 
   function sub(uint256 a, uint256 b) internal pure returns(uint256) 
   {
-     assert(b <= a);
+     require(b <= a);
      return a - b;
   }
 
@@ -49,7 +49,7 @@ library SafeMath
   function add(uint256 a, uint256 b) internal pure returns(uint256 c) 
   {
      c = a + b;
-     assert(c >= a);
+     require(c >= a);
      return c;
   }
 }
@@ -130,7 +130,7 @@ contract OppOpenWiFi is ERC20
      * @return An uint256 representing the amount owned by the passed address
      */
 
-    function balanceOf(address _owner) public onlyOwner view returns (uint256 balance) 
+    function balanceOf(address _owner) public view returns (uint256 balance) 
     {
        return balances[_owner];
     }
@@ -335,6 +335,19 @@ contract OppOpenWiFi is ERC20
    	     claimLimits[_address].tokens = 0;
    		    
       claimLimits[_address].limitSet = true;
+   }
+
+   /** 
+    * @dev Get claim limit values
+    */
+
+   function getClaimLimitValues(address _address) public view returns(uint256, uint256, uint256)
+   {
+      require(claimLimits[_address].limitSet, "Limit not set");
+
+      return(claimLimits[_address].time_limit_epoch, claimLimits[_address].last_claim_time,claimLimits[_address].tokens); 
+      
+
    }
 }
 
